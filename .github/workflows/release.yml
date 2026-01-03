@@ -65,7 +65,7 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm version $VERSION --no-git-tag-version
+      - run: npm version $VERSION --no-git-tag-version --allow-same-version
         working-directory: core/browser
       - run: npm ci
         working-directory: core/browser
@@ -96,7 +96,7 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm version $VERSION --no-git-tag-version
+      - run: npm version $VERSION --no-git-tag-version --allow-same-version
         working-directory: core/node
       - run: npm ci
         working-directory: core/node
@@ -130,7 +130,7 @@ jobs:
       - name: Build browser SDK dependency
         run: npm ci && npm run build
         working-directory: core/browser
-      - run: npm version $VERSION --no-git-tag-version
+      - run: npm version $VERSION --no-git-tag-version --allow-same-version
         working-directory: frameworks/react
       - run: npm ci
         working-directory: frameworks/react
@@ -164,7 +164,7 @@ jobs:
       - name: Build browser SDK dependency
         run: npm ci && npm run build
         working-directory: core/browser
-      - run: npm version $VERSION --no-git-tag-version
+      - run: npm version $VERSION --no-git-tag-version --allow-same-version
         working-directory: frameworks/vue
       - run: npm ci
         working-directory: frameworks/vue
