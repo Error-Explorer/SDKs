@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Breadcrumbs Test - Error Explorer Symfony Demo{% endblock %}
+
+{% block body %}
+<h2>Breadcrumbs Test</h2>
+<p>Various breadcrumbs have been added to demonstrate tracking.</p>
+
+<h3>Current Breadcrumbs ({{ breadcrumbs|length }})</h3>
+<pre>{{ breadcrumbs|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+
+<h3>Breadcrumb Types Added:</h3>
+<ul>
+    <li><strong>Log entries</strong> - Via Monolog handler (debug, info, warning)</li>
+    <li><strong>User action</strong> - Manual user action breadcrumb</li>
+    <li><strong>HTTP request</strong> - Simulated API call</li>
+    <li><strong>Database query</strong> - SQL query breadcrumb</li>
+    <li><strong>Cache operation</strong> - Cache hit/miss</li>
+</ul>
+{% endblock %}

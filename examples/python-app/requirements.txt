@@ -1,0 +1,5 @@
+# Error Explorer Python SDK
+-e ../../core/python
+
+# Optional async support
+aiohttp>=3.8.0

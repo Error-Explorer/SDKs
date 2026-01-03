@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Flow - Error Explorer Symfony Demo{% endblock %}
+
+{% block body %}
+<h2>User Flow Simulation</h2>
+<p>A complete user checkout flow has been simulated with breadcrumbs.</p>
+
+<h3>Flow Steps:</h3>
+<ol>
+    <li>Navigate from /products to /cart</li>
+    <li>Add product to cart (SKU-001, quantity: 2)</li>
+    <li>Check inventory via API</li>
+    <li>Update cart in database</li>
+    <li>Navigate to /checkout</li>
+    <li>Enter payment details</li>
+    <li>Validate payment via API</li>
+</ol>
+
+<h3>Breadcrumbs Collected ({{ breadcrumbs|length }})</h3>
+<pre>{{ breadcrumbs|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+
+<p>
+    <a href="{{ path('app_test_checkout_error') }}" class="error">
+        Simulate checkout error (with all these breadcrumbs)
+    </a>
+</p>
+{% endblock %}

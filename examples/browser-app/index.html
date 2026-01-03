@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Explorer - Browser SDK Example</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #555;
+            font-size: 1.2em;
+        }
+        button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        button.info {
+            background: #3498db;
+        }
+        button.info:hover {
+            background: #2980b9;
+        }
+        button.warning {
+            background: #f39c12;
+        }
+        button.warning:hover {
+            background: #d68910;
+        }
+        button.success {
+            background: #27ae60;
+        }
+        button.success:hover {
+            background: #1e8449;
+        }
+        .console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .console .error { color: #f44747; }
+        .console .warning { color: #dcdcaa; }
+        .console .info { color: #4fc1ff; }
+        .console .success { color: #4ec9b0; }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        .log-time {
+            color: #888;
+            margin-right: 10px;
+        }
+        input[type="text"], input[type="email"] {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .status.active {
+            background: #27ae60;
+            color: white;
+        }
+        .status.inactive {
+            background: #95a5a6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>
+        Error Explorer
+        <span class="status" id="sdk-status">Loading...</span>
+    </h1>
+    <p>Browser SDK Example - Test error tracking in the browser</p>
+
+    <!-- Error Triggers -->
+    <div class="card">
+        <h2>Trigger Errors</h2>
+        <button onclick="triggerReferenceError()">ReferenceError</button>
+        <button onclick="triggerTypeError()">TypeError</button>
+        <button onclick="triggerSyntaxError()">SyntaxError (eval)</button>
+        <button onclick="triggerRangeError()">RangeError</button>
+        <button onclick="triggerCustomError()">Custom Error</button>
+        <button onclick="triggerAsyncError()">Async Error</button>
+        <button onclick="triggerUnhandledRejection()">Unhandled Promise</button>
+    </div>
+
+    <!-- Manual Capture -->
+    <div class="card">
+        <h2>Manual Capture</h2>
+        <button class="info" onclick="captureManualError()">Capture Exception</button>
+        <button class="warning" onclick="captureMessage('warning')">Capture Warning</button>
+        <button class="info" onclick="captureMessage('info')">Capture Info</button>
+    </div>
+
+    <!-- User Context -->
+    <div class="card">
+        <h2>User Context</h2>
+        <input type="text" id="user-id" placeholder="User ID" value="user_12345">
+        <input type="email" id="user-email" placeholder="Email" value="demo@example.com">
+        <input type="text" id="user-name" placeholder="Name" value="Demo User">
+        <br><br>
+        <button class="success" onclick="setUserContext()">Set User</button>
+        <button onclick="clearUserContext()">Clear User</button>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <div class="card">
+        <h2>Add Breadcrumbs</h2>
+        <button class="info" onclick="addBreadcrumb('navigation', 'Navigated to /dashboard')">Navigation</button>
+        <button class="info" onclick="addBreadcrumb('ui.click', 'Clicked submit button')">UI Click</button>
+        <button class="info" onclick="addBreadcrumb('http', 'GET /api/users')">HTTP Request</button>
+        <button class="info" onclick="addBreadcrumb('console', 'Debug message logged')">Console</button>
+    </div>
+
+    <!-- Network Errors -->
+    <div class="card">
+        <h2>Network Errors (Fetch/XHR)</h2>
+        <button onclick="triggerFetchError()">Fetch 404</button>
+        <button onclick="triggerFetchTimeout()">Fetch Timeout</button>
+        <button onclick="triggerXhrError()">XHR Error</button>
+    </div>
+
+    <!-- Console Log -->
+    <div class="card">
+        <h2>Activity Log</h2>
+        <div class="console" id="activity-log">
+            <div class="log-entry info">
+                <span class="log-time">--:--:--</span>
+                Waiting for SDK initialization...
+            </div>
+        </div>
+        <br>
+        <button class="info" onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <!-- SDK Script -->
+    <script src="./error-explorer.min.js"></script>
+    <script>
+        // Activity Log
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('activity-log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.innerHTML = `<span class="log-time">${time}</span>${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('activity-log').innerHTML = '';
+            log('Log cleared', 'info');
+        }
+
+        // Initialize SDK
+        // Get token from your Error Explorer project settings
+        const DEMO_MODE = false; // Set to true to disable sending
+
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                ErrorExplorer.init({
+                    dsn: 'http://ee_ea13238616f6fb1dffca3fb3ab6edfe6a8846a9ad456a5b5110f574809cc@error-explorer.localhost/api/v1/webhook',
+                    hmacSecret: '05b9794c79bb49f330a7cb51bfeb4e2fc06ab37255646bca9f84b7bd8b9251a9',
+                    environment: 'development',
+                    release: '1.0.0-demo',
+                    debug: true,
+                    maxBreadcrumbs: 30,
+                    beforeSend: function(event) {
+                        log(`Event captured: ${event.message}`, 'success');
+                        if (DEMO_MODE) {
+                            // Demo mode: log but don't send
+                            console.log('[DEMO] Event would be sent:', event);
+                            return null;
+                        }
+                        // Production mode: send to Error Explorer
+                        return event;
+                    }
+                });
+
+                document.getElementById('sdk-status').textContent = 'Active';
+                document.getElementById('sdk-status').className = 'status active';
+                log('SDK initialized successfully', 'success');
+            } catch (e) {
+                document.getElementById('sdk-status').textContent = 'Error';
+                document.getElementById('sdk-status').className = 'status inactive';
+                log('SDK initialization failed: ' + e.message, 'error');
+            }
+        });
+
+        // Error Triggers
+        function triggerReferenceError() {
+            log('Triggering ReferenceError...', 'warning');
+            undefinedVariable.doSomething();
+        }
+
+        function triggerTypeError() {
+            log('Triggering TypeError...', 'warning');
+            null.toString();
+        }
+
+        function triggerSyntaxError() {
+            log('Triggering SyntaxError via eval...', 'warning');
+            eval('function() {');
+        }
+
+        function triggerRangeError() {
+            log('Triggering RangeError...', 'warning');
+            new Array(-1);
+        }
+
+        function triggerCustomError() {
+            log('Triggering custom error...', 'warning');
+            class CustomError extends Error {
+                constructor(message) {
+                    super(message);
+                    this.name = 'CustomError';
+                }
+            }
+            throw new CustomError('This is a custom error for testing');
+        }
+
+        function triggerAsyncError() {
+            log('Triggering async error (setTimeout)...', 'warning');
+            setTimeout(function() {
+                throw new Error('Async error in setTimeout');
+            }, 100);
+        }
+
+        function triggerUnhandledRejection() {
+            log('Triggering unhandled promise rejection...', 'warning');
+            new Promise(function(resolve, reject) {
+                reject(new Error('Promise was rejected'));
+            });
+        }
+
+        // Manual Capture
+        function captureManualError() {
+            log('Capturing exception manually...', 'info');
+            try {
+                throw new Error('Manually captured error');
+            } catch (e) {
+                ErrorExplorer.captureException(e, {
+                    tags: { source: 'manual' },
+                    extra: { buttonClicked: true }
+                });
+            }
+        }
+
+        function captureMessage(level) {
+            log(`Capturing ${level} message...`, 'info');
+            ErrorExplorer.captureMessage(`This is a ${level} message from the demo`, level);
+        }
+
+        // User Context
+        function setUserContext() {
+            const id = document.getElementById('user-id').value;
+            const email = document.getElementById('user-email').value;
+            const name = document.getElementById('user-name').value;
+
+            ErrorExplorer.setUser({
+                id: id,
+                email: email,
+                name: name,
+                plan: 'pro'
+            });
+
+            log(`User set: ${name} (${email})`, 'success');
+        }
+
+        function clearUserContext() {
+            ErrorExplorer.setUser(null);
+            log('User context cleared', 'info');
+        }
+
+        // Breadcrumbs
+        function addBreadcrumb(category, message) {
+            ErrorExplorer.addBreadcrumb({
+                category: category,
+                message: message,
+                level: 'info'
+            });
+            log(`Breadcrumb added: [${category}] ${message}`, 'info');
+        }
+
+        // Network Errors
+        function triggerFetchError() {
+            log('Triggering fetch 404 error...', 'warning');
+            fetch('/api/non-existent-endpoint')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                })
+                .catch(function(e) {
+                    log('Fetch error caught: ' + e.message, 'error');
+                });
+        }
+
+        function triggerFetchTimeout() {
+            log('Triggering fetch timeout...', 'warning');
+            const controller = new AbortController();
+            setTimeout(function() { controller.abort(); }, 100);
+
+            fetch('https://httpstat.us/200?sleep=5000', { signal: controller.signal })
+                .catch(function(e) {
+                    log('Fetch timeout: ' + e.message, 'error');
+                });
+        }
+
+        function triggerXhrError() {
+            log('Triggering XHR error...', 'warning');
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/xhr-error-test');
+            xhr.onerror = function() {
+                log('XHR error occurred', 'error');
+            };
+            xhr.onload = function() {
+                if (xhr.status >= 400) {
+                    log('XHR error: HTTP ' + xhr.status, 'error');
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    ignoreErrors:
+        # Laravel Route::getName() returns string|null but Laravel also returns object in some cases
+        - '#Cannot call method getName\(\) on object\|string#'
+        # Laravel Auth contract doesn't expose user() directly but guards do
+        - '#Call to an undefined method Illuminate\\Contracts\\Auth\\Factory::user\(\)#'
+        # User method can return Authenticatable which may be class-string
+        - '#Cannot call method getEmailForVerification\(\) on class-string\|object#'
+        # PHPDoc tag formatting
+        - '#PHPDoc tag @var above assignment does not specify variable name#'
+        # Config returns mixed, causing type issues
+        - '#Cannot assign offset .* to string#'
+        # Monolog level type coercion from config string
+        -
+            message: '#Parameter \#1 \$level of class ErrorExplorer\\Laravel\\Logging\\ErrorExplorerLogHandler constructor expects.*string given#'
+            path: src/Logging/ErrorExplorerLogHandler.php

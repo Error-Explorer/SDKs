@@ -1,0 +1,85 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "e2bd4b6937df8f6d0da3402c6dd349ff",
+    "packages": [
+        {
+            "name": "error-explorer/php-sdk",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "../../core/php",
+                "reference": "94338d76dbc52f86a6239bd793c55e428e5a57b7"
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ErrorExplorer\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "ErrorExplorer\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "phpstan": [
+                    "phpstan analyse src --level=8"
+                ],
+                "cs-fix": [
+                    "php-cs-fixer fix src"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Error Explorer Team",
+                    "email": "support@error-explorer.com"
+                }
+            ],
+            "description": "Error Explorer SDK for PHP - Automatic error tracking with zero configuration",
+            "homepage": "https://github.com/error-explorer/php-sdk",
+            "keywords": [
+                "debugging",
+                "error-tracking",
+                "exceptions",
+                "logging",
+                "monitoring"
+            ],
+            "transport-options": {
+                "relative": true
+            }
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "error-explorer/php-sdk": 20
+    },
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.1"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

@@ -1,0 +1,256 @@
+name: Release SDKs
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+      sdks:
+        description: 'SDKs to release (comma-separated or "all")'
+        required: true
+        default: 'all'
+        type: string
+      dry_run:
+        description: 'Dry run (no actual publish)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  VERSION: ${{ github.event.inputs.version }}
+
+jobs:
+  # ============================================================
+  # VALIDATE & PREPARE
+  # ============================================================
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      release_browser: ${{ steps.check.outputs.browser }}
+      release_node: ${{ steps.check.outputs.node }}
+      release_php: ${{ steps.check.outputs.php }}
+      release_python: ${{ steps.check.outputs.python }}
+      release_react: ${{ steps.check.outputs.react }}
+      release_vue: ${{ steps.check.outputs.vue }}
+      release_symfony: ${{ steps.check.outputs.symfony }}
+      release_laravel: ${{ steps.check.outputs.laravel }}
+      release_django: ${{ steps.check.outputs.django }}
+      release_flask: ${{ steps.check.outputs.flask }}
+      release_fastapi: ${{ steps.check.outputs.fastapi }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate version format
+        run: |
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+      - name: Determine SDKs to release
+        id: check
+        run: |
+          SDKS="${{ github.event.inputs.sdks }}"
+          if [ "$SDKS" = "all" ]; then
+            echo "browser=true" >> $GITHUB_OUTPUT
+            echo "node=true" >> $GITHUB_OUTPUT
+            echo "php=true" >> $GITHUB_OUTPUT
+            echo "python=true" >> $GITHUB_OUTPUT
+            echo "react=true" >> $GITHUB_OUTPUT
+            echo "vue=true" >> $GITHUB_OUTPUT
+            echo "symfony=true" >> $GITHUB_OUTPUT
+            echo "laravel=true" >> $GITHUB_OUTPUT
+            echo "django=true" >> $GITHUB_OUTPUT
+            echo "flask=true" >> $GITHUB_OUTPUT
+            echo "fastapi=true" >> $GITHUB_OUTPUT
+          else
+            for sdk in browser node php python react vue symfony laravel django flask fastapi; do
+              if echo "$SDKS" | grep -q "$sdk"; then
+                echo "$sdk=true" >> $GITHUB_OUTPUT
+              else
+                echo "$sdk=false" >> $GITHUB_OUTPUT
+              fi
+            done
+          fi
+
+  # ============================================================
+  # NPM RELEASES (Browser, Node, React, Vue)
+  # ============================================================
+  release-npm:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - sdk: browser
+            path: core/browser
+            package: '@error-explorer/browser'
+            enabled: ${{ needs.prepare.outputs.release_browser }}
+          - sdk: node
+            path: core/node
+            package: '@error-explorer/node'
+            enabled: ${{ needs.prepare.outputs.release_node }}
+          - sdk: react
+            path: frameworks/react
+            package: '@error-explorer/react'
+            enabled: ${{ needs.prepare.outputs.release_react }}
+          - sdk: vue
+            path: frameworks/vue
+            package: '@error-explorer/vue'
+            enabled: ${{ needs.prepare.outputs.release_vue }}
+    if: ${{ matrix.enabled == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Update version
+        run: npm version $VERSION --no-git-tag-version
+        working-directory: ${{ matrix.path }}
+      - run: npm ci
+        working-directory: ${{ matrix.path }}
+      - run: npm run build
+        working-directory: ${{ matrix.path }}
+      - run: npm test
+        working-directory: ${{ matrix.path }}
+      - name: Publish to NPM
+        if: ${{ !github.event.inputs.dry_run }}
+        run: npm publish --access public
+        working-directory: ${{ matrix.path }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ============================================================
+  # PACKAGIST RELEASES (PHP, Symfony, Laravel)
+  # ============================================================
+  release-packagist:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - sdk: php
+            path: core/php
+            package: 'error-explorer/php-sdk'
+            enabled: ${{ needs.prepare.outputs.release_php }}
+          - sdk: symfony
+            path: frameworks/symfony
+            package: 'error-explorer/symfony-sdk'
+            enabled: ${{ needs.prepare.outputs.release_symfony }}
+          - sdk: laravel
+            path: frameworks/laravel
+            package: 'error-explorer/laravel-sdk'
+            enabled: ${{ needs.prepare.outputs.release_laravel }}
+    if: ${{ matrix.enabled == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Update version in composer.json
+        run: |
+          jq ".version = \"$VERSION\"" composer.json > tmp.json && mv tmp.json composer.json
+        working-directory: ${{ matrix.path }}
+      - run: composer install --no-progress
+        working-directory: ${{ matrix.path }}
+      - run: vendor/bin/phpunit
+        working-directory: ${{ matrix.path }}
+      # Packagist auto-updates from GitHub tags
+
+  # ============================================================
+  # PYPI RELEASES (Python, Django, Flask, FastAPI)
+  # ============================================================
+  release-pypi:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - sdk: python
+            path: core/python
+            package: 'error-explorer'
+            enabled: ${{ needs.prepare.outputs.release_python }}
+          - sdk: django
+            path: frameworks/django
+            package: 'error-explorer-django'
+            enabled: ${{ needs.prepare.outputs.release_django }}
+          - sdk: flask
+            path: frameworks/flask
+            package: 'error-explorer-flask'
+            enabled: ${{ needs.prepare.outputs.release_flask }}
+          - sdk: fastapi
+            path: frameworks/fastapi
+            package: 'error-explorer-fastapi'
+            enabled: ${{ needs.prepare.outputs.release_fastapi }}
+    if: ${{ matrix.enabled == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Update version
+        run: |
+          sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        working-directory: ${{ matrix.path }}
+      - name: Install dependencies
+        run: |
+          pip install build twine
+          pip install -e ".[dev]"
+        working-directory: ${{ matrix.path }}
+      - run: pytest tests/ -v
+        working-directory: ${{ matrix.path }}
+      - name: Build package
+        run: python -m build
+        working-directory: ${{ matrix.path }}
+      - name: Publish to PyPI
+        if: ${{ !github.event.inputs.dry_run }}
+        run: twine upload dist/*
+        working-directory: ${{ matrix.path }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  # ============================================================
+  # CREATE GITHUB RELEASE
+  # ============================================================
+  create-release:
+    needs: [release-npm, release-packagist, release-pypi]
+    if: ${{ !github.event.inputs.dry_run && always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Git Tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body: |
+            ## Error Explorer SDKs v${{ env.VERSION }}
+
+            ### Packages Released
+
+            **NPM:**
+            - `@error-explorer/browser@${{ env.VERSION }}`
+            - `@error-explorer/node@${{ env.VERSION }}`
+            - `@error-explorer/react@${{ env.VERSION }}`
+            - `@error-explorer/vue@${{ env.VERSION }}`
+
+            **Packagist:**
+            - `error-explorer/php-sdk:${{ env.VERSION }}`
+            - `error-explorer/symfony-sdk:${{ env.VERSION }}`
+            - `error-explorer/laravel-sdk:${{ env.VERSION }}`
+
+            **PyPI:**
+            - `error-explorer==${{ env.VERSION }}`
+            - `error-explorer-django==${{ env.VERSION }}`
+            - `error-explorer-flask==${{ env.VERSION }}`
+            - `error-explorer-fastapi==${{ env.VERSION }}`
+          draft: false
+          prerelease: ${{ contains(env.VERSION, '-') }}

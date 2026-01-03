@@ -1,0 +1,66 @@
+# Error Explorer Bundle Configuration
+error_explorer:
+    # Enable the bundle
+    enabled: true
+
+    # Your project token (use environment variable in production)
+    token: '%env(ERROR_EXPLORER_TOKEN)%'
+
+    # Custom endpoint for local development (uncomment to use)
+    # Default: https://api.error-explorer.com/api/v1/webhook
+    endpoint: '%env(ERROR_EXPLORER_ENDPOINT)%'
+
+    # Environment - using 'production' for testing alerts
+    environment: 'production'
+
+    # Application release version
+    release: 'v1.0.0-demo'
+
+    # HMAC Security
+    security:
+        hmac_enabled: true
+        hmac_secret: '%env(ERROR_EXPLORER_HMAC_SECRET)%'
+        hmac_algorithm: sha256
+
+    # What to capture
+    capture:
+        exceptions: true
+        errors: true
+        fatal_errors: true
+
+    # Breadcrumbs configuration
+    breadcrumbs:
+        max_breadcrumbs: 50
+        http_requests: true
+        doctrine: true
+        monolog: true
+        console: true
+        messenger: true
+        cache: true
+        security: true
+
+    # Context collection
+    context:
+        user: true
+        request: true
+        server: true
+
+    # Transport options
+    transport:
+        async: true
+        timeout: 10
+        retry: 2
+
+    # Ignore certain errors/routes
+    ignore:
+        exceptions: []
+        routes:
+            - _wdt
+            - _profiler
+        status_codes: []
+        paths: []
+
+    # Fields to scrub from payloads
+    scrub_fields:
+        - credit_card_number
+        - cvv

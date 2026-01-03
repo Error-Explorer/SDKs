@@ -1,0 +1,205 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      browser: ${{ steps.filter.outputs.browser }}
+      node: ${{ steps.filter.outputs.node }}
+      php: ${{ steps.filter.outputs.php }}
+      python: ${{ steps.filter.outputs.python }}
+      react: ${{ steps.filter.outputs.react }}
+      vue: ${{ steps.filter.outputs.vue }}
+      symfony: ${{ steps.filter.outputs.symfony }}
+      laravel: ${{ steps.filter.outputs.laravel }}
+      django: ${{ steps.filter.outputs.django }}
+      flask: ${{ steps.filter.outputs.flask }}
+      fastapi: ${{ steps.filter.outputs.fastapi }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            browser:
+              - 'core/browser/**'
+            node:
+              - 'core/node/**'
+            php:
+              - 'core/php/**'
+            python:
+              - 'core/python/**'
+            react:
+              - 'frameworks/react/**'
+            vue:
+              - 'frameworks/vue/**'
+            symfony:
+              - 'frameworks/symfony/**'
+            laravel:
+              - 'frameworks/laravel/**'
+            django:
+              - 'frameworks/django/**'
+            flask:
+              - 'frameworks/flask/**'
+            fastapi:
+              - 'frameworks/fastapi/**'
+
+  test-browser:
+    needs: changes
+    if: needs.changes.outputs.browser == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci && npm test && npm run build
+        working-directory: core/browser
+
+  test-node:
+    needs: changes
+    if: needs.changes.outputs.node == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci && npm test && npm run build
+        working-directory: core/node
+
+  test-react:
+    needs: changes
+    if: needs.changes.outputs.react == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci && npm test && npm run build
+        working-directory: frameworks/react
+
+  test-vue:
+    needs: changes
+    if: needs.changes.outputs.vue == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci && npm test && npm run build
+        working-directory: frameworks/vue
+
+  test-php:
+    needs: changes
+    if: needs.changes.outputs.php == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - run: composer install --no-progress && vendor/bin/phpunit
+        working-directory: core/php
+
+  test-symfony:
+    needs: changes
+    if: needs.changes.outputs.symfony == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - run: composer install --no-progress && vendor/bin/phpunit
+        working-directory: frameworks/symfony
+
+  test-laravel:
+    needs: changes
+    if: needs.changes.outputs.laravel == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - run: composer install --no-progress && vendor/bin/phpunit
+        working-directory: frameworks/laravel
+
+  test-python:
+    needs: changes
+    if: needs.changes.outputs.python == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]" && pytest tests/ -v
+        working-directory: core/python
+
+  test-django:
+    needs: changes
+    if: needs.changes.outputs.django == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e core/python && pip install -e "frameworks/django[dev]" && pytest frameworks/django/tests/ -v
+
+  test-flask:
+    needs: changes
+    if: needs.changes.outputs.flask == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e core/python && pip install -e "frameworks/flask[dev]" && pytest frameworks/flask/tests/ -v
+
+  test-fastapi:
+    needs: changes
+    if: needs.changes.outputs.fastapi == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e core/python && pip install -e "frameworks/fastapi[dev]" && pytest frameworks/fastapi/tests/ -v

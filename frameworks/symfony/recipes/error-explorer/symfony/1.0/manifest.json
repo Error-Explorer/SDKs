@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "ErrorExplorer\\Symfony\\ErrorExplorerBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "ERROR_EXPLORER_TOKEN": "your_project_token_here"
+    },
+    "aliases": ["error-explorer", "ee"]
+}

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Context - Error Explorer Symfony Demo{% endblock %}
+
+{% block body %}
+<h2>User Context Test</h2>
+<p>User context, tags, and extra data have been set.</p>
+
+<h3>User Context</h3>
+<pre>{{ user|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+
+<h3>Tags</h3>
+<pre>{{ tags|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+
+<h3>Extra Data</h3>
+<pre>{{ extra|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+
+<p>This context will be included with any errors captured on this request.</p>
+{% endblock %}

@@ -1,0 +1,62 @@
+{
+    "name": "error-explorer/symfony",
+    "description": "Error Explorer integration for Symfony - Automatic error tracking with zero configuration",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": ["error-tracking", "monitoring", "symfony", "bundle", "debugging", "exceptions"],
+    "homepage": "https://github.com/error-explorer/symfony",
+    "authors": [
+        {
+            "name": "Error Explorer Team",
+            "email": "support@error-explorer.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../core/php"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "error-explorer/php-sdk": "@dev",
+        "symfony/framework-bundle": "^6.0|^7.0",
+        "symfony/http-kernel": "^6.0|^7.0",
+        "symfony/dependency-injection": "^6.0|^7.0",
+        "symfony/config": "^6.0|^7.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^3.0|^4.0",
+        "monolog/monolog": "^3.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.0",
+        "symfony/console": "^6.0|^7.0",
+        "symfony/messenger": "^6.0|^7.0",
+        "symfony/security-bundle": "^6.0|^7.0"
+    },
+    "suggest": {
+        "symfony/security-bundle": "For automatic user context detection",
+        "doctrine/dbal": "For automatic SQL query breadcrumbs",
+        "monolog/monolog": "For automatic log breadcrumbs"
+    },
+    "autoload": {
+        "psr-4": {
+            "ErrorExplorer\\Symfony\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ErrorExplorer\\Symfony\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0-dev"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

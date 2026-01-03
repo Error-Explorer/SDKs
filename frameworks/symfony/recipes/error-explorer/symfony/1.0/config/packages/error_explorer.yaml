@@ -1,0 +1,106 @@
+# Error Explorer Configuration
+# Documentation: https://docs.error-explorer.com/symfony
+
+error_explorer:
+    # ══════════════════════════════════════════════════════════════════════════
+    # REQUIRED: Authentication
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # Your project webhook token (get it from Error Explorer dashboard)
+    token: '%env(ERROR_EXPLORER_TOKEN)%'
+
+    # Alternative: Use DSN format
+    # dsn: '%env(ERROR_EXPLORER_DSN)%'
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # RECOMMENDED: Project Information
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # Environment (auto-detected from kernel.environment if not set)
+    environment: '%kernel.environment%'
+
+    # Release/version of your application
+    # release: '%env(APP_VERSION)%'
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # SECURITY: HMAC Signature (optional but recommended for production)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # security:
+    #     hmac_enabled: true
+    #     hmac_secret: '%env(ERROR_EXPLORER_HMAC_SECRET)%'
+    #     hmac_algorithm: 'sha256'  # sha256, sha384, sha512
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # CAPTURE: What to capture (all enabled by default)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # capture:
+    #     exceptions: true        # Uncaught exceptions
+    #     errors: true            # PHP errors (warnings, notices)
+    #     fatal_errors: true      # Fatal errors via shutdown function
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # BREADCRUMBS: Automatic tracking (all enabled by default)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # breadcrumbs:
+    #     max_breadcrumbs: 50     # Maximum breadcrumbs to keep
+    #     http_requests: true     # Track HTTP requests/responses
+    #     doctrine: true          # Track SQL queries
+    #     monolog: true           # Track log entries
+    #     console: true           # Track console commands
+    #     messenger: true         # Track Messenger messages
+    #     cache: true             # Track cache operations
+    #     security: true          # Track security events (login, logout)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # CONTEXT: Automatic context collection (all enabled by default)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # context:
+    #     user: true              # Auto-detect user from Security component
+    #     request: true           # Collect request info (URL, IP, headers)
+    #     server: true            # Collect server info (PHP, memory)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # TRANSPORT: How errors are sent
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # transport:
+    #     async: true             # Send after response (recommended)
+    #     timeout: 3              # HTTP timeout in seconds
+    #     retry: 2                # Number of retries on failure
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # FILTERING: Ignore specific errors or URLs
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # ignore:
+    #     exceptions:             # Exception classes to ignore
+    #         - Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+    #         - Symfony\Component\Security\Core\Exception\AccessDeniedException
+    #     routes:                 # Routes to ignore
+    #         - _wdt
+    #         - _profiler
+    #     status_codes:           # HTTP status codes to ignore
+    #         - 404
+    #         - 403
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PRIVACY: Sensitive data handling
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # scrub_fields:               # Field names to scrub (in addition to defaults)
+    #     - custom_secret
+    #     - internal_token
+
+    # Default scrubbed fields: password, passwd, secret, token, api_key,
+    # authorization, credit_card, card_number, cvv, ssn
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ADVANCED
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # listener_priority: -1024    # Exception listener priority (lower = runs later)
+    # enabled: true               # Enable/disable the bundle entirely

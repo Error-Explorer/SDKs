@@ -1,0 +1,39 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # SDK Initializer - runs on kernel.request with high priority
+    error_explorer.initializer:
+        class: ErrorExplorer\Symfony\Service\ErrorExplorerInitializer
+        arguments:
+            $token: '%error_explorer.token%'
+            $dsn: '%error_explorer.dsn%'
+            $endpoint: '%error_explorer.endpoint%'
+            $environment: '%error_explorer.environment%'
+            $release: '%error_explorer.release%'
+            $security: '%error_explorer.security%'
+            $capture: '%error_explorer.capture%'
+            $breadcrumbs: '%error_explorer.breadcrumbs%'
+            $transport: '%error_explorer.transport%'
+            $scrubFields: '%error_explorer.scrub_fields%'
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 4096 }
+
+    # Exception subscriber
+    error_explorer.exception_subscriber:
+        class: ErrorExplorer\Symfony\EventSubscriber\ExceptionSubscriber
+        public: true
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Request subscriber (for HTTP breadcrumbs)
+    error_explorer.request_subscriber:
+        class: ErrorExplorer\Symfony\EventSubscriber\RequestSubscriber
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Monolog handler (logs become breadcrumbs) - with FQCN alias for reference
+    ErrorExplorer\Symfony\Monolog\ErrorExplorerHandler:
+        class: ErrorExplorer\Symfony\Monolog\ErrorExplorerHandler
+        public: true

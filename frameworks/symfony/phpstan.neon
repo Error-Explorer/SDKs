@@ -1,0 +1,11 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        # Doctrine DBAL compatibility layer - supports both DBAL 3.x and 4.x
+        # Method signatures differ between versions, making static analysis impossible
+        - src/Doctrine/DoctrineQueryLogger.php

@@ -1,0 +1,67 @@
+{
+  "name": "@error-explorer/browser",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Error Explorer SDK for Browser - Automatic error tracking and breadcrumbs",
+  "main": "dist/error-explorer.cjs.js",
+  "module": "dist/error-explorer.esm.js",
+  "browser": "dist/error-explorer.min.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "error",
+    "tracking",
+    "monitoring",
+    "browser",
+    "javascript",
+    "error-explorer",
+    "breadcrumbs",
+    "logging"
+  ],
+  "author": "Error Explorer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/error-explorer/error-explorer-sdks.git",
+    "directory": "core/browser"
+  },
+  "bugs": {
+    "url": "https://github.com/error-explorer/error-explorer-sdks/issues"
+  },
+  "homepage": "https://github.com/error-explorer/error-explorer-sdks/tree/main/core/browser#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.10.0",
+    "tslib": "^2.6.2",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.55.0",
+    "happy-dom": "^12.10.3",
+    "rollup": "^4.9.0",
+    "rollup-plugin-dts": "^6.1.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "sideEffects": false
+}

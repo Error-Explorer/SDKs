@@ -1,0 +1,23 @@
+{
+    "name": "error-explorer/example-php-basic",
+    "description": "Basic PHP example using Error Explorer SDK",
+    "type": "project",
+    "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../core/php"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "error-explorer/php-sdk": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

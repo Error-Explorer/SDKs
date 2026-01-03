@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "error-explorer"
+version = "1.0.0"
+description = "Error Explorer SDK for Python - Automatic error tracking and monitoring"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Error Explorer", email = "support@error-explorer.com"}
+]
+keywords = [
+    "error-explorer",
+    "error-tracking",
+    "error-monitoring",
+    "exception-handling",
+    "debugging",
+    "logging",
+    "apm"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+    "Topic :: System :: Monitoring",
+    "Typing :: Typed",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.25.0",
+    "typing-extensions>=4.0.0;python_version<'3.11'",
+]
+
+[project.optional-dependencies]
+async = ["aiohttp>=3.8.0"]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "responses>=0.23.0",
+    "aioresponses>=0.7.4",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://error-explorer.com"
+Documentation = "https://docs.error-explorer.com/sdks/python"
+Repository = "https://github.com/error-explorer/error-explorer-sdks"
+Issues = "https://github.com/error-explorer/error-explorer-sdks/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+error_explorer = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["src/error_explorer"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]

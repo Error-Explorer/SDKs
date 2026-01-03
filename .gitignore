@@ -1,0 +1,114 @@
+# ============================================
+# Dependencies (all subdirectories)
+# ============================================
+**/node_modules/
+**/vendor/
+**/.venv/
+**/venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Lock files (optional - some prefer to commit these)
+# composer.lock
+# package-lock.json
+
+# ============================================
+# Build outputs
+# ============================================
+**/dist/
+**/build/
+**/*.egg-info/
+**/.eggs/
+
+# ============================================
+# IDE & Editors
+# ============================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-*
+
+# ============================================
+# OS files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ============================================
+# PHP
+# ============================================
+*.phar
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+phpstan.neon.local
+
+# ============================================
+# JavaScript/TypeScript
+# ============================================
+*.tsbuildinfo
+.eslintcache
+.npm/
+
+# ============================================
+# Python
+# ============================================
+*.py[cod]
+*$py.class
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+
+# ============================================
+# Coverage & Testing
+# ============================================
+**/coverage/
+**/.coverage
+*.lcov
+*.cover
+.hypothesis/
+.nox/
+.tox/
+
+# ============================================
+# Environment & Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+*.local.yaml
+*.local.yml
+
+# ============================================
+# Logs & Temp files
+# ============================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+**/tmp/
+*.tmp
+*.temp
+
+# ============================================
+# Cache
+# ============================================
+.cache/
+**/var/cache/
+
+# ============================================
+# Examples - user data
+# ============================================
+examples/**/uploads/
+examples/**/*.sqlite

@@ -1,0 +1,53 @@
+name: Feature Request
+description: Suggest a new feature for an Error Explorer SDK
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: sdk
+    attributes:
+      label: SDK
+      description: Which SDK is this for?
+      options:
+        - "All SDKs"
+        - "@error-explorer/browser"
+        - "@error-explorer/node"
+        - "@error-explorer/react"
+        - "@error-explorer/vue"
+        - "error-explorer/php-sdk"
+        - "error-explorer/symfony-sdk"
+        - "error-explorer/laravel-sdk"
+        - "error-explorer (Python)"
+        - "error-explorer-django"
+        - "error-explorer-flask"
+        - "error-explorer-fastapi"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or features you've considered.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or examples.

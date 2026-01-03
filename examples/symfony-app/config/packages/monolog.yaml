@@ -1,0 +1,13 @@
+monolog:
+    handlers:
+        main:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            level: debug
+            channels: ["!event"]
+
+        # Error Explorer handler - logs become breadcrumbs
+        error_explorer:
+            type: service
+            id: ErrorExplorer\Symfony\Monolog\ErrorExplorerHandler
+            level: debug

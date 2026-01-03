@@ -1,0 +1,78 @@
+{
+  "name": "@error-explorer/node",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Error Explorer SDK for Node.js - Automatic error tracking and monitoring",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./express": {
+      "types": "./dist/middleware/express.d.ts",
+      "import": "./dist/middleware/express.js",
+      "require": "./dist/middleware/express.cjs"
+    },
+    "./http": {
+      "types": "./dist/middleware/http.d.ts",
+      "import": "./dist/middleware/http.js",
+      "require": "./dist/middleware/http.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "error",
+    "tracking",
+    "monitoring",
+    "nodejs",
+    "express",
+    "error-explorer",
+    "breadcrumbs",
+    "logging",
+    "crash-reporting",
+    "exception-handling"
+  ],
+  "author": "Error Explorer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/error-explorer/error-explorer-sdks.git",
+    "directory": "core/node"
+  },
+  "bugs": {
+    "url": "https://github.com/error-explorer/error-explorer-sdks/issues"
+  },
+  "homepage": "https://github.com/error-explorer/error-explorer-sdks/tree/main/core/node#readme",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.55.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "sideEffects": false
+}

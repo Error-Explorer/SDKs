@@ -1,0 +1,43 @@
+parameters:
+	ignoreErrors:
+		# Doctrine DBAL 3.x vs 4.x compatibility issues
+		# The LoggingDriver supports both DBAL versions but signatures differ
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Driver\:\:getSchemaManager\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php
+
+		-
+			message: '#^Default value of the parameter \#3 \$type \(Doctrine\\DBAL\\ParameterType\:\:STRING\) of method ErrorExplorer\\Symfony\\Doctrine\\LoggingStatement\:\:bindValue\(\) is incompatible with type int\.$#'
+			identifier: parameter.defaultValue
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php
+
+		-
+			message: '#^Method Doctrine\\DBAL\\Driver\:\:getDatabasePlatform\(\) invoked with 0 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php
+
+		-
+			message: '#^Method ErrorExplorer\\Symfony\\Doctrine\\LoggingDriver\:\:getSchemaManager\(\) return type with generic class Doctrine\\DBAL\\Schema\\AbstractSchemaManager does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php
+
+		-
+			message: '#^Parameter \#3 \$type of method Doctrine\\DBAL\\Driver\\Statement\:\:bindValue\(\) expects Doctrine\\DBAL\\ParameterType, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php
+
+		-
+			message: '#^Method ErrorExplorer\\Symfony\\Doctrine\\LoggingDriver\:\:getDatabasePlatform\(\) overrides method Doctrine\\DBAL\\Driver\:\:getDatabasePlatform\(\) but misses parameter \#1 \$versionProvider\.$#'
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php
+
+		-
+			message: '#^Parameter \#3 \$type \(int\) of method ErrorExplorer\\Symfony\\Doctrine\\LoggingStatement\:\:bindValue\(\) is not contravariant with parameter \#3 \$type \(Doctrine\\DBAL\\ParameterType\) of method Doctrine\\DBAL\\Driver\\Statement\:\:bindValue\(\)\.$#'
+			count: 1
+			path: src/Doctrine/DoctrineQueryLogger.php

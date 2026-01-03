@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - Error Explorer Symfony Demo{% endblock %}
+
+{% block body %}
+<h2>SDK Status</h2>
+<table>
+    <tr>
+        <th>Property</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td>SDK Initialized</td>
+        <td class="{{ sdk_initialized ? 'success' : 'error' }}">
+            {{ sdk_initialized ? 'Yes' : 'No' }}
+        </td>
+    </tr>
+    <tr>
+        <td>Current Breadcrumbs</td>
+        <td>{{ breadcrumb_count }}</td>
+    </tr>
+</table>
+
+<h2>Test Endpoints</h2>
+<ul>
+    <li><a href="{{ path('app_test_breadcrumbs') }}">Test Breadcrumbs</a> - Add various breadcrumb types</li>
+    <li><a href="{{ path('app_test_user_context') }}">Test User Context</a> - Set user, tags, and extra data</li>
+    <li><a href="{{ path('app_test_manual_capture') }}">Test Manual Capture</a> - Manually capture exceptions and messages</li>
+    <li><a href="{{ path('app_test_user_flow') }}">Test User Flow</a> - Simulate a complete user journey</li>
+    <li><a href="{{ path('app_test_exception') }}" class="error">Trigger Exception</a> - Throw an uncaught exception</li>
+    <li><a href="{{ path('app_test_checkout_error') }}" class="error">Checkout Error</a> - Simulate checkout failure with breadcrumbs</li>
+</ul>
+
+<h2>How It Works</h2>
+<p>The Error Explorer Symfony Bundle automatically:</p>
+<ul>
+    <li>Captures all uncaught exceptions</li>
+    <li>Records HTTP request/response breadcrumbs</li>
+    <li>Converts Monolog entries to breadcrumbs</li>
+    <li>Detects the current user from Symfony Security</li>
+    <li>Sends errors asynchronously (non-blocking)</li>
+</ul>
+{% endblock %}

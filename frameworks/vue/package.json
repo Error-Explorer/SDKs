@@ -1,0 +1,82 @@
+{
+  "name": "@error-explorer/vue",
+  "version": "1.0.0",
+  "description": "Error Explorer SDK for Vue.js 3 - Automatic error tracking with Vue integration",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./router": {
+      "import": "./dist/router.js",
+      "require": "./dist/router.cjs",
+      "types": "./dist/router.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.vue",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0",
+    "vue-router": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vue-router": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@error-explorer/browser": "file:../../core/browser"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@vitejs/plugin-vue": "^4.5.0",
+    "@vue/test-utils": "^2.4.0",
+    "happy-dom": "^12.10.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "vue": "^3.3.0",
+    "vue-router": "^4.2.0"
+  },
+  "keywords": [
+    "error-explorer",
+    "vue",
+    "vue3",
+    "error-tracking",
+    "error-monitoring",
+    "breadcrumbs",
+    "debugging"
+  ],
+  "author": "Error Explorer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/error-explorer/error-explorer-sdks.git",
+    "directory": "frameworks/vue"
+  },
+  "bugs": {
+    "url": "https://github.com/error-explorer/error-explorer-sdks/issues"
+  },
+  "homepage": "https://github.com/error-explorer/error-explorer-sdks/tree/main/frameworks/vue#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

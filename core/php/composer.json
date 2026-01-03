@@ -1,0 +1,44 @@
+{
+    "name": "error-explorer/php-sdk",
+    "description": "Error Explorer SDK for PHP - Automatic error tracking with zero configuration",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["error-tracking", "monitoring", "debugging", "exceptions", "logging"],
+    "homepage": "https://github.com/error-explorer/php-sdk",
+    "authors": [
+        {
+            "name": "Error Explorer Team",
+            "email": "support@error-explorer.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.10",
+        "friendsofphp/php-cs-fixer": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ErrorExplorer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ErrorExplorer\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse src --level=8",
+        "cs-fix": "php-cs-fixer fix src"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
