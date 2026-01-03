@@ -5,6 +5,9 @@ on:
     branches: [main]
     tags: ['v*']
 
+permissions:
+  contents: read
+
 jobs:
   split:
     runs-on: ubuntu-latest
@@ -28,14 +31,25 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
+      - name: Check SPLIT_TOKEN
+        run: |
+          if [ -z "$SPLIT_TOKEN" ]; then
+            echo "::error::SPLIT_TOKEN secret is not set or empty!"
+            exit 1
+          fi
+          echo "SPLIT_TOKEN is configured (length: ${#SPLIT_TOKEN} chars)"
+        env:
+          SPLIT_TOKEN: ${{ secrets.SPLIT_TOKEN }}
+
       - name: Split ${{ matrix.package.remote_repo }}
         run: |
-          # Create split branch
           git subtree split --prefix=${{ matrix.package.local_path }} -b split-${{ matrix.package.remote_repo }}
 
       - name: Push to ${{ matrix.package.remote_repo }}
+        env:
+          SPLIT_TOKEN: ${{ secrets.SPLIT_TOKEN }}
         run: |
-          git remote add target https://x-access-token:${{ secrets.SPLIT_TOKEN }}@github.com/Error-Explorer/${{ matrix.package.remote_repo }}.git || true
+          git remote add target https://x-access-token:${SPLIT_TOKEN}@github.com/Error-Explorer/${{ matrix.package.remote_repo }}.git 2>/dev/null || git remote set-url target https://x-access-token:${SPLIT_TOKEN}@github.com/Error-Explorer/${{ matrix.package.remote_repo }}.git
 
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG="${{ github.ref_name }}"
