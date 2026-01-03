@@ -1,0 +1,47 @@
+name: Split Monorepo
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - local_path: core/php
+            remote_repo: php-sdk
+          - local_path: frameworks/symfony
+            remote_repo: symfony-sdk
+          - local_path: frameworks/laravel
+            remote_repo: laravel-sdk
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Split ${{ matrix.package.remote_repo }}
+        run: |
+          # Create split branch
+          git subtree split --prefix=${{ matrix.package.local_path }} -b split-${{ matrix.package.remote_repo }}
+
+      - name: Push to ${{ matrix.package.remote_repo }}
+        run: |
+          git remote add target https://x-access-token:${{ secrets.SPLIT_TOKEN }}@github.com/Error-Explorer/${{ matrix.package.remote_repo }}.git || true
+
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+            git push target split-${{ matrix.package.remote_repo }}:refs/heads/main --force
+            git tag -f $TAG split-${{ matrix.package.remote_repo }}
+            git push target $TAG --force
+          else
+            git push target split-${{ matrix.package.remote_repo }}:refs/heads/main --force
+          fi
