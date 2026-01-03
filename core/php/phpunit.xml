@@ -7,7 +7,8 @@
          beStrictAboutOutputDuringTests="true"
          cacheResultFile=".phpunit.cache/test-results"
          failOnRisky="true"
-         failOnWarning="false">
+         failOnWarning="false"
+         failOnDeprecation="false">
     <testsuites>
         <testsuite name="Unit">
             <directory>tests</directory>

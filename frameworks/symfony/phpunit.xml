@@ -6,7 +6,8 @@
          executionOrder="depends,defects"
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
-         failOnWarning="false">
+         failOnWarning="false"
+         failOnDeprecation="false">
     <testsuites>
         <testsuite name="Error Explorer Symfony Bundle Test Suite">
             <directory>tests</directory>
