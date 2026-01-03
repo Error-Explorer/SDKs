@@ -103,6 +103,30 @@ Follow conventional commits:
 
 Example: `feat(react): add useErrorExplorer hook`
 
+## CI/CD & Tokens
+
+### NPM Publishing (Maintainers)
+
+Since December 2024, npm requires **granular tokens** with:
+- Maximum 90-day expiration
+- 2FA enabled on your npm account
+
+To create a token:
+1. Go to [npmjs.com](https://www.npmjs.com) → Access Tokens → Generate New Token
+2. Select "Granular Access Token"
+3. Set packages: `@error-explorer/*`
+4. Set permissions: Read and Write
+5. Add token to GitHub Secrets as `NPM_TOKEN`
+
+Our workflow uses **npm provenance** for supply chain security.
+
+### PyPI Publishing (Maintainers)
+
+PyPI uses API tokens:
+1. Go to [pypi.org](https://pypi.org) → Account Settings → API Tokens
+2. Create token scoped to `error-explorer*` packages
+3. Add to GitHub Secrets as `PYPI_TOKEN`
+
 ## Questions?
 
 Open an issue or reach out at support@error-explorer.com
