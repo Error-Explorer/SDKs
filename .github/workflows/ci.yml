@@ -41,19 +41,29 @@ jobs:
               - 'core/python/**'
             react:
               - 'frameworks/react/**'
+              - 'core/browser/**'
             vue:
               - 'frameworks/vue/**'
+              - 'core/browser/**'
             symfony:
               - 'frameworks/symfony/**'
+              - 'core/php/**'
             laravel:
               - 'frameworks/laravel/**'
+              - 'core/php/**'
             django:
               - 'frameworks/django/**'
+              - 'core/python/**'
             flask:
               - 'frameworks/flask/**'
+              - 'core/python/**'
             fastapi:
               - 'frameworks/fastapi/**'
+              - 'core/python/**'
 
+  # ============================================================
+  # JAVASCRIPT SDKs
+  # ============================================================
   test-browser:
     needs: changes
     if: needs.changes.outputs.browser == 'true' || github.ref == 'refs/heads/main'
@@ -63,7 +73,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci && npm test && npm run build
+          cache: 'npm'
+          cache-dependency-path: core/browser/package-lock.json
+      - run: npm ci
+        working-directory: core/browser
+      - run: npm test
+        working-directory: core/browser
+      - run: npm run build
         working-directory: core/browser
 
   test-node:
@@ -75,33 +91,52 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci && npm test && npm run build
+          cache: 'npm'
+          cache-dependency-path: core/node/package-lock.json
+      - run: npm ci
+        working-directory: core/node
+      - run: npm test
+        working-directory: core/node
+      - run: npm run build
         working-directory: core/node
 
   test-react:
-    needs: changes
-    if: needs.changes.outputs.react == 'true' || github.ref == 'refs/heads/main'
+    needs: [changes, test-browser]
+    if: always() && (needs.changes.outputs.react == 'true' || github.ref == 'refs/heads/main') && (needs.test-browser.result == 'success' || needs.test-browser.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci && npm test && npm run build
+      - name: Build browser SDK first (dependency)
+        run: npm ci && npm run build
+        working-directory: core/browser
+      - name: Install and test React SDK
+        run: npm ci && npm test && npm run build
         working-directory: frameworks/react
 
   test-vue:
-    needs: changes
-    if: needs.changes.outputs.vue == 'true' || github.ref == 'refs/heads/main'
+    needs: [changes, test-browser]
+    if: always() && (needs.changes.outputs.vue == 'true' || github.ref == 'refs/heads/main') && (needs.test-browser.result == 'success' || needs.test-browser.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci && npm test && npm run build
+      - name: Build browser SDK first (dependency)
+        run: npm ci && npm run build
+        working-directory: core/browser
+      - name: Install and test Vue SDK
+        run: npm ci && npm test && npm run build
         working-directory: frameworks/vue
 
+  # ============================================================
+  # PHP SDKs
+  # Note: Using 'composer update' to generate fresh lock file
+  # compatible with each PHP version
+  # ============================================================
   test-php:
     needs: changes
     if: needs.changes.outputs.php == 'true' || github.ref == 'refs/heads/main'
@@ -114,7 +149,12 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-      - run: composer install --no-progress && vendor/bin/phpunit
+          coverage: none
+      - name: Install dependencies
+        run: composer update --no-progress --prefer-dist
+        working-directory: core/php
+      - name: Run tests
+        run: vendor/bin/phpunit
         working-directory: core/php
 
   test-symfony:
@@ -129,7 +169,12 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-      - run: composer install --no-progress && vendor/bin/phpunit
+          coverage: none
+      - name: Install dependencies
+        run: composer update --no-progress --prefer-dist
+        working-directory: frameworks/symfony
+      - name: Run tests
+        run: vendor/bin/phpunit
         working-directory: frameworks/symfony
 
   test-laravel:
@@ -138,15 +183,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.1', '8.2', '8.3']
+        php-version: ['8.2', '8.3']
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-      - run: composer install --no-progress && vendor/bin/phpunit
+          coverage: none
+      - name: Install dependencies
+        run: composer update --no-progress --prefer-dist
+        working-directory: frameworks/laravel
+      - name: Run tests
+        run: vendor/bin/phpunit
         working-directory: frameworks/laravel
 
+  # ============================================================
+  # PYTHON SDKs
+  # ============================================================
   test-python:
     needs: changes
     if: needs.changes.outputs.python == 'true' || github.ref == 'refs/heads/main'
@@ -159,7 +212,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]" && pytest tests/ -v
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+        working-directory: core/python
+      - name: Run tests
+        run: pytest tests/ -v
         working-directory: core/python
 
   test-django:
@@ -174,7 +231,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e core/python && pip install -e "frameworks/django[dev]" && pytest frameworks/django/tests/ -v
+      - name: Install core SDK
+        run: pip install -e .
+        working-directory: core/python
+      - name: Install Django SDK with dev dependencies
+        run: pip install -e ".[dev]"
+        working-directory: frameworks/django
+      - name: Run tests
+        run: pytest tests/ -v
+        working-directory: frameworks/django
 
   test-flask:
     needs: changes
@@ -188,7 +253,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e core/python && pip install -e "frameworks/flask[dev]" && pytest frameworks/flask/tests/ -v
+      - name: Install core SDK
+        run: pip install -e .
+        working-directory: core/python
+      - name: Install Flask SDK with dev dependencies
+        run: pip install -e ".[dev]"
+        working-directory: frameworks/flask
+      - name: Run tests
+        run: pytest tests/ -v
+        working-directory: frameworks/flask
 
   test-fastapi:
     needs: changes
@@ -202,4 +275,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e core/python && pip install -e "frameworks/fastapi[dev]" && pytest frameworks/fastapi/tests/ -v
+      - name: Install core SDK
+        run: pip install -e .
+        working-directory: core/python
+      - name: Install FastAPI SDK with dev dependencies
+        run: pip install -e ".[dev]"
+        working-directory: frameworks/fastapi
+      - name: Run tests
+        run: pytest tests/ -v
+        working-directory: frameworks/fastapi

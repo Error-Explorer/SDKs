@@ -9,8 +9,10 @@
 *.pyc
 *.pyo
 
-# Lock files (optional - some prefer to commit these)
-# composer.lock
+# Lock files
+# PHP: Don't commit composer.lock to allow CI to generate compatible versions
+**/composer.lock
+# JS: package-lock.json is committed for reproducible builds
 # package-lock.json
 
 # ============================================
