@@ -5,7 +5,7 @@
          colors="true"
          executionOrder="depends,defects"
          beStrictAboutOutputDuringTests="true"
-         cacheResultFile=".phpunit.cache/test-results"
+         cacheDirectory=".phpunit.cache"
          failOnRisky="true"
          failOnWarning="false"
          failOnDeprecation="false">
@@ -15,11 +15,11 @@
         </testsuite>
     </testsuites>
 
-    <coverage cacheDirectory=".phpunit.cache/code-coverage">
+    <source>
         <include>
             <directory suffix=".php">src</directory>
         </include>
-    </coverage>
+    </source>
 
     <php>
         <env name="APP_ENV" value="test"/>
