@@ -54,13 +54,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/error-explorer/error-explorer-sdks.git",
+    "url": "https://github.com/Error-Explorer/SDKs.git",
     "directory": "core/node"
   },
   "bugs": {
-    "url": "https://github.com/error-explorer/error-explorer-sdks/issues"
+    "url": "https://github.com/Error-Explorer/SDKs/issues"
   },
-  "homepage": "https://github.com/error-explorer/error-explorer-sdks/tree/main/core/node#readme",
+  "homepage": "https://github.com/Error-Explorer/SDKs/tree/main/core/node#readme",
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",

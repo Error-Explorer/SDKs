@@ -36,13 +36,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/error-explorer/error-explorer-sdks.git",
+    "url": "https://github.com/Error-Explorer/SDKs.git",
     "directory": "core/browser"
   },
   "bugs": {
-    "url": "https://github.com/error-explorer/error-explorer-sdks/issues"
+    "url": "https://github.com/Error-Explorer/SDKs/issues"
   },
-  "homepage": "https://github.com/error-explorer/error-explorer-sdks/tree/main/core/browser#readme",
+  "homepage": "https://github.com/Error-Explorer/SDKs/tree/main/core/browser#readme",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",

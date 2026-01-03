@@ -69,13 +69,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/error-explorer/error-explorer-sdks.git",
+    "url": "https://github.com/Error-Explorer/SDKs.git",
     "directory": "frameworks/vue"
   },
   "bugs": {
-    "url": "https://github.com/error-explorer/error-explorer-sdks/issues"
+    "url": "https://github.com/Error-Explorer/SDKs/issues"
   },
-  "homepage": "https://github.com/error-explorer/error-explorer-sdks/tree/main/frameworks/vue#readme",
+  "homepage": "https://github.com/Error-Explorer/SDKs/tree/main/frameworks/vue#readme",
   "engines": {
     "node": ">=18.0.0"
   }
