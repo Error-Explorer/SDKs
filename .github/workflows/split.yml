@@ -6,7 +6,7 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   split:
@@ -48,14 +48,25 @@ jobs:
       - name: Push to ${{ matrix.package.remote_repo }}
         env:
           SPLIT_TOKEN: ${{ secrets.SPLIT_TOKEN }}
+          REMOTE_REPO: ${{ matrix.package.remote_repo }}
         run: |
-          git remote add target https://x-access-token:${SPLIT_TOKEN}@github.com/Error-Explorer/${{ matrix.package.remote_repo }}.git 2>/dev/null || git remote set-url target https://x-access-token:${SPLIT_TOKEN}@github.com/Error-Explorer/${{ matrix.package.remote_repo }}.git
+          # Configure git to use the token
+          git config --global credential.helper store
+          echo "https://x-access-token:${SPLIT_TOKEN}@github.com" > ~/.git-credentials
 
+          # Add remote
+          git remote add target "https://github.com/Error-Explorer/${REMOTE_REPO}.git" 2>/dev/null || \
+          git remote set-url target "https://github.com/Error-Explorer/${REMOTE_REPO}.git"
+
+          # Push
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG="${{ github.ref_name }}"
-            git push target split-${{ matrix.package.remote_repo }}:refs/heads/main --force
-            git tag -f $TAG split-${{ matrix.package.remote_repo }}
-            git push target $TAG --force
+            git push target "split-${REMOTE_REPO}:refs/heads/main" --force
+            git tag -f "$TAG" "split-${REMOTE_REPO}"
+            git push target "$TAG" --force
           else
-            git push target split-${{ matrix.package.remote_repo }}:refs/heads/main --force
+            git push target "split-${REMOTE_REPO}:refs/heads/main" --force
           fi
+
+          # Cleanup credentials
+          rm -f ~/.git-credentials
