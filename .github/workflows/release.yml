@@ -11,7 +11,20 @@ on:
         description: 'SDKs to release (comma-separated or "all")'
         required: true
         default: 'all'
-        type: string
+        type: choice
+        options:
+          - all
+          - browser
+          - node
+          - react
+          - vue
+          - php
+          - symfony
+          - laravel
+          - python
+          - django
+          - flask
+          - fastapi
       dry_run:
         description: 'Dry run (no actual publish)'
         required: false
@@ -23,208 +36,351 @@ env:
 
 jobs:
   # ============================================================
-  # VALIDATE & PREPARE
+  # VALIDATE VERSION
   # ============================================================
-  prepare:
+  validate:
     runs-on: ubuntu-latest
-    outputs:
-      release_browser: ${{ steps.check.outputs.browser }}
-      release_node: ${{ steps.check.outputs.node }}
-      release_php: ${{ steps.check.outputs.php }}
-      release_python: ${{ steps.check.outputs.python }}
-      release_react: ${{ steps.check.outputs.react }}
-      release_vue: ${{ steps.check.outputs.vue }}
-      release_symfony: ${{ steps.check.outputs.symfony }}
-      release_laravel: ${{ steps.check.outputs.laravel }}
-      release_django: ${{ steps.check.outputs.django }}
-      release_flask: ${{ steps.check.outputs.flask }}
-      release_fastapi: ${{ steps.check.outputs.fastapi }}
     steps:
-      - uses: actions/checkout@v4
       - name: Validate version format
         run: |
-          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
-            echo "Invalid version format: $VERSION"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "::error::Invalid version format: $VERSION. Use semver (e.g., 1.0.0 or 1.0.0-beta.1)"
             exit 1
           fi
-      - name: Determine SDKs to release
-        id: check
-        run: |
-          SDKS="${{ github.event.inputs.sdks }}"
-          if [ "$SDKS" = "all" ]; then
-            echo "browser=true" >> $GITHUB_OUTPUT
-            echo "node=true" >> $GITHUB_OUTPUT
-            echo "php=true" >> $GITHUB_OUTPUT
-            echo "python=true" >> $GITHUB_OUTPUT
-            echo "react=true" >> $GITHUB_OUTPUT
-            echo "vue=true" >> $GITHUB_OUTPUT
-            echo "symfony=true" >> $GITHUB_OUTPUT
-            echo "laravel=true" >> $GITHUB_OUTPUT
-            echo "django=true" >> $GITHUB_OUTPUT
-            echo "flask=true" >> $GITHUB_OUTPUT
-            echo "fastapi=true" >> $GITHUB_OUTPUT
-          else
-            for sdk in browser node php python react vue symfony laravel django flask fastapi; do
-              if echo "$SDKS" | grep -q "$sdk"; then
-                echo "$sdk=true" >> $GITHUB_OUTPUT
-              else
-                echo "$sdk=false" >> $GITHUB_OUTPUT
-              fi
-            done
-          fi
+          echo "Version $VERSION is valid"
 
   # ============================================================
-  # NPM RELEASES (Browser, Node, React, Vue)
-  # Uses OIDC authentication (recommended since Dec 2024)
-  # See: https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked
+  # NPM: Browser SDK
   # ============================================================
-  release-npm:
-    needs: prepare
+  release-browser:
+    needs: validate
+    if: contains(github.event.inputs.sdks, 'browser') || github.event.inputs.sdks == 'all'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write  # Required for npm provenance/OIDC
-    strategy:
-      matrix:
-        include:
-          - sdk: browser
-            path: core/browser
-            package: '@error-explorer/browser'
-            enabled: ${{ needs.prepare.outputs.release_browser }}
-          - sdk: node
-            path: core/node
-            package: '@error-explorer/node'
-            enabled: ${{ needs.prepare.outputs.release_node }}
-          - sdk: react
-            path: frameworks/react
-            package: '@error-explorer/react'
-            enabled: ${{ needs.prepare.outputs.release_react }}
-          - sdk: vue
-            path: frameworks/vue
-            package: '@error-explorer/vue'
-            enabled: ${{ needs.prepare.outputs.release_vue }}
-    if: ${{ matrix.enabled == 'true' }}
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-      - name: Update version
-        run: npm version $VERSION --no-git-tag-version
-        working-directory: ${{ matrix.path }}
+      - run: npm version $VERSION --no-git-tag-version
+        working-directory: core/browser
       - run: npm ci
-        working-directory: ${{ matrix.path }}
-      - run: npm run build
-        working-directory: ${{ matrix.path }}
+        working-directory: core/browser
       - run: npm test
-        working-directory: ${{ matrix.path }}
-      - name: Publish to NPM with provenance
-        if: ${{ !github.event.inputs.dry_run }}
+        working-directory: core/browser
+      - run: npm run build
+        working-directory: core/browser
+      - name: Publish to NPM
+        if: ${{ !inputs.dry_run }}
         run: npm publish --access public --provenance
-        working-directory: ${{ matrix.path }}
+        working-directory: core/browser
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ============================================================
-  # PACKAGIST RELEASES (PHP, Symfony, Laravel)
+  # NPM: Node SDK
   # ============================================================
-  release-packagist:
-    needs: prepare
+  release-node:
+    needs: validate
+    if: contains(github.event.inputs.sdks, 'node') || github.event.inputs.sdks == 'all'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - sdk: php
-            path: core/php
-            package: 'error-explorer/php-sdk'
-            enabled: ${{ needs.prepare.outputs.release_php }}
-          - sdk: symfony
-            path: frameworks/symfony
-            package: 'error-explorer/symfony-sdk'
-            enabled: ${{ needs.prepare.outputs.release_symfony }}
-          - sdk: laravel
-            path: frameworks/laravel
-            package: 'error-explorer/laravel-sdk'
-            enabled: ${{ needs.prepare.outputs.release_laravel }}
-    if: ${{ matrix.enabled == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm version $VERSION --no-git-tag-version
+        working-directory: core/node
+      - run: npm ci
+        working-directory: core/node
+      - run: npm test
+        working-directory: core/node
+      - run: npm run build
+        working-directory: core/node
+      - name: Publish to NPM
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --access public --provenance
+        working-directory: core/node
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ============================================================
+  # NPM: React SDK (depends on browser)
+  # ============================================================
+  release-react:
+    needs: [validate, release-browser]
+    if: always() && (contains(github.event.inputs.sdks, 'react') || github.event.inputs.sdks == 'all') && (needs.release-browser.result == 'success' || needs.release-browser.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Build browser SDK dependency
+        run: npm ci && npm run build
+        working-directory: core/browser
+      - run: npm version $VERSION --no-git-tag-version
+        working-directory: frameworks/react
+      - run: npm ci
+        working-directory: frameworks/react
+      - run: npm test
+        working-directory: frameworks/react
+      - run: npm run build
+        working-directory: frameworks/react
+      - name: Publish to NPM
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --access public --provenance
+        working-directory: frameworks/react
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ============================================================
+  # NPM: Vue SDK (depends on browser)
+  # ============================================================
+  release-vue:
+    needs: [validate, release-browser]
+    if: always() && (contains(github.event.inputs.sdks, 'vue') || github.event.inputs.sdks == 'all') && (needs.release-browser.result == 'success' || needs.release-browser.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Build browser SDK dependency
+        run: npm ci && npm run build
+        working-directory: core/browser
+      - run: npm version $VERSION --no-git-tag-version
+        working-directory: frameworks/vue
+      - run: npm ci
+        working-directory: frameworks/vue
+      - run: npm test
+        working-directory: frameworks/vue
+      - run: npm run build
+        working-directory: frameworks/vue
+      - name: Publish to NPM
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --access public --provenance
+        working-directory: frameworks/vue
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ============================================================
+  # PHP: Core SDK (Packagist auto-syncs from tags)
+  # ============================================================
+  release-php:
+    needs: validate
+    if: contains(github.event.inputs.sdks, 'php') || github.event.inputs.sdks == 'all'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-      - name: Update version in composer.json
+      - name: Update version
         run: |
           jq ".version = \"$VERSION\"" composer.json > tmp.json && mv tmp.json composer.json
-        working-directory: ${{ matrix.path }}
-      - run: composer install --no-progress
-        working-directory: ${{ matrix.path }}
+        working-directory: core/php
+      - run: composer update --no-progress --prefer-dist
+        working-directory: core/php
       - run: vendor/bin/phpunit
-        working-directory: ${{ matrix.path }}
-      # Packagist auto-updates from GitHub tags
+        working-directory: core/php
 
   # ============================================================
-  # PYPI RELEASES (Python, Django, Flask, FastAPI)
+  # PHP: Symfony SDK
   # ============================================================
-  release-pypi:
-    needs: prepare
+  release-symfony:
+    needs: [validate, release-php]
+    if: always() && (contains(github.event.inputs.sdks, 'symfony') || github.event.inputs.sdks == 'all') && (needs.release-php.result == 'success' || needs.release-php.result == 'skipped')
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - sdk: python
-            path: core/python
-            package: 'error-explorer'
-            enabled: ${{ needs.prepare.outputs.release_python }}
-          - sdk: django
-            path: frameworks/django
-            package: 'error-explorer-django'
-            enabled: ${{ needs.prepare.outputs.release_django }}
-          - sdk: flask
-            path: frameworks/flask
-            package: 'error-explorer-flask'
-            enabled: ${{ needs.prepare.outputs.release_flask }}
-          - sdk: fastapi
-            path: frameworks/fastapi
-            package: 'error-explorer-fastapi'
-            enabled: ${{ needs.prepare.outputs.release_fastapi }}
-    if: ${{ matrix.enabled == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Update version
+        run: |
+          jq ".version = \"$VERSION\"" composer.json > tmp.json && mv tmp.json composer.json
+        working-directory: frameworks/symfony
+      - run: composer update --no-progress --prefer-dist
+        working-directory: frameworks/symfony
+      - run: vendor/bin/phpunit
+        working-directory: frameworks/symfony
+
+  # ============================================================
+  # PHP: Laravel SDK
+  # ============================================================
+  release-laravel:
+    needs: [validate, release-php]
+    if: always() && (contains(github.event.inputs.sdks, 'laravel') || github.event.inputs.sdks == 'all') && (needs.release-php.result == 'success' || needs.release-php.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Update version
+        run: |
+          jq ".version = \"$VERSION\"" composer.json > tmp.json && mv tmp.json composer.json
+        working-directory: frameworks/laravel
+      - run: composer update --no-progress --prefer-dist
+        working-directory: frameworks/laravel
+      - run: vendor/bin/phpunit
+        working-directory: frameworks/laravel
+
+  # ============================================================
+  # Python: Core SDK
+  # ============================================================
+  release-python:
+    needs: validate
+    if: contains(github.event.inputs.sdks, 'python') || github.event.inputs.sdks == 'all'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Update version
-        run: |
-          sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
-        working-directory: ${{ matrix.path }}
-      - name: Install dependencies
-        run: |
-          pip install build twine
-          pip install -e ".[dev]"
-        working-directory: ${{ matrix.path }}
+        run: sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        working-directory: core/python
+      - run: pip install build twine
+      - run: pip install -e ".[dev]"
+        working-directory: core/python
       - run: pytest tests/ -v
-        working-directory: ${{ matrix.path }}
-      - name: Build package
-        run: python -m build
-        working-directory: ${{ matrix.path }}
+        working-directory: core/python
+      - run: python -m build
+        working-directory: core/python
       - name: Publish to PyPI
-        if: ${{ !github.event.inputs.dry_run }}
+        if: ${{ !inputs.dry_run }}
         run: twine upload dist/*
-        working-directory: ${{ matrix.path }}
+        working-directory: core/python
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
   # ============================================================
-  # CREATE GITHUB RELEASE
+  # Python: Django SDK
+  # ============================================================
+  release-django:
+    needs: [validate, release-python]
+    if: always() && (contains(github.event.inputs.sdks, 'django') || github.event.inputs.sdks == 'all') && (needs.release-python.result == 'success' || needs.release-python.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Update version
+        run: sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        working-directory: frameworks/django
+      - run: pip install build twine
+      - name: Install core SDK
+        run: pip install -e .
+        working-directory: core/python
+      - run: pip install -e ".[dev]"
+        working-directory: frameworks/django
+      - name: Run tests
+        run: PYTHONPATH="${PYTHONPATH}:$(pwd)" pytest tests/ -v
+        working-directory: frameworks/django
+      - run: python -m build
+        working-directory: frameworks/django
+      - name: Publish to PyPI
+        if: ${{ !inputs.dry_run }}
+        run: twine upload dist/*
+        working-directory: frameworks/django
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  # ============================================================
+  # Python: Flask SDK
+  # ============================================================
+  release-flask:
+    needs: [validate, release-python]
+    if: always() && (contains(github.event.inputs.sdks, 'flask') || github.event.inputs.sdks == 'all') && (needs.release-python.result == 'success' || needs.release-python.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Update version
+        run: sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        working-directory: frameworks/flask
+      - run: pip install build twine
+      - name: Install core SDK
+        run: pip install -e .
+        working-directory: core/python
+      - run: pip install -e ".[dev]"
+        working-directory: frameworks/flask
+      - run: pytest tests/ -v
+        working-directory: frameworks/flask
+      - run: python -m build
+        working-directory: frameworks/flask
+      - name: Publish to PyPI
+        if: ${{ !inputs.dry_run }}
+        run: twine upload dist/*
+        working-directory: frameworks/flask
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  # ============================================================
+  # Python: FastAPI SDK
+  # ============================================================
+  release-fastapi:
+    needs: [validate, release-python]
+    if: always() && (contains(github.event.inputs.sdks, 'fastapi') || github.event.inputs.sdks == 'all') && (needs.release-python.result == 'success' || needs.release-python.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Update version
+        run: sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        working-directory: frameworks/fastapi
+      - run: pip install build twine
+      - name: Install core SDK
+        run: pip install -e .
+        working-directory: core/python
+      - run: pip install -e ".[dev]"
+        working-directory: frameworks/fastapi
+      - run: pytest tests/ -v
+        working-directory: frameworks/fastapi
+      - run: python -m build
+        working-directory: frameworks/fastapi
+      - name: Publish to PyPI
+        if: ${{ !inputs.dry_run }}
+        run: twine upload dist/*
+        working-directory: frameworks/fastapi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  # ============================================================
+  # CREATE GITHUB RELEASE (only if all succeeded and not dry run)
   # ============================================================
   create-release:
-    needs: [release-npm, release-packagist, release-pypi]
-    if: ${{ !github.event.inputs.dry_run && always() }}
+    needs: [release-browser, release-node, release-react, release-vue, release-php, release-symfony, release-laravel, release-python, release-django, release-flask, release-fastapi]
+    if: always() && !inputs.dry_run && !contains(needs.*.result, 'failure')
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required for creating tags and releases
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Create Git Tag
@@ -234,7 +390,7 @@ jobs:
           git tag -a "v$VERSION" -m "Release v$VERSION"
           git push origin "v$VERSION"
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}

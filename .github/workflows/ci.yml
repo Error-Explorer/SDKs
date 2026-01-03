@@ -238,7 +238,7 @@ jobs:
         run: pip install -e ".[dev]"
         working-directory: frameworks/django
       - name: Run tests
-        run: pytest tests/ -v
+        run: PYTHONPATH="${PYTHONPATH}:$(pwd)" pytest tests/ -v
         working-directory: frameworks/django
 
   test-flask:
