@@ -115,6 +115,33 @@ LOGGING = {
 }
 ```
 
+## Event Filtering with before_send
+
+Use the `before_send` callback to filter or modify events before they're sent:
+
+```python
+# settings.py
+def before_send(event):
+    # Drop events from specific paths
+    if event.get("request", {}).get("url", "").startswith("/health"):
+        return None  # Drop the event
+
+    # Remove sensitive data
+    if "extra" in event and "api_response" in event["extra"]:
+        event["extra"]["api_response"] = "[REDACTED]"
+
+    # Add custom data
+    event["tags"] = event.get("tags", {})
+    event["tags"]["deployment_id"] = os.environ.get("DEPLOYMENT_ID", "unknown")
+
+    return event
+
+ERROR_EXPLORER = {
+    'token': 'your_project_token',
+    'before_send': before_send,
+}
+```
+
 ## Manual Usage
 
 You can also use Error Explorer manually:

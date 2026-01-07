@@ -3,7 +3,9 @@
  */
 
 import type { App, ComponentPublicInstance } from 'vue';
+import type { Router } from 'vue-router';
 import type { InitOptions, UserContext, Breadcrumb, CaptureContext } from '@error-explorer/browser';
+import type { RouterIntegrationOptions } from './router';
 
 /**
  * Vue-specific initialization options
@@ -27,10 +29,12 @@ export interface VueErrorExplorerOptions extends InitOptions {
   vueWarnHandler?: boolean;
 
   /**
-   * Enable Vue Router integration for navigation breadcrumbs
-   * @default true
+   * Vue Router integration for navigation breadcrumbs.
+   * Pass a Router instance to enable automatic navigation tracking.
+   * Pass an object with router and options for more control.
+   * Pass false to disable.
    */
-  router?: boolean;
+  router?: Router | { instance: Router; options?: RouterIntegrationOptions } | false;
 
   /**
    * Capture component name in error context

@@ -113,6 +113,28 @@ logging.warning("This will be a breadcrumb")
 logging.error("This will be captured as an event")
 ```
 
+## Event Filtering with before_send
+
+Use the `before_send` callback to filter or modify events before they're sent:
+
+```python
+def before_send(event):
+    # Drop events from health check endpoints
+    if event.get("request", {}).get("url", "").startswith("/health"):
+        return None  # Drop the event
+
+    # Add custom tags
+    event["tags"] = event.get("tags", {})
+    event["tags"]["service"] = "api"
+
+    return event
+
+ErrorExplorer.init({
+    "token": "your-token",
+    "before_send": before_send,
+})
+```
+
 ## Manual Error Capture
 
 ```python

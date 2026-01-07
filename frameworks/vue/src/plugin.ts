@@ -3,8 +3,10 @@
  */
 
 import type { App, ComponentPublicInstance, Plugin } from 'vue';
+import type { Router } from 'vue-router';
 import { ErrorExplorer } from '@error-explorer/browser';
 import type { VueErrorExplorerOptions, VueComponentContext } from './types';
+import { setupRouterIntegration } from './router';
 
 /**
  * Get component name from instance
@@ -247,6 +249,34 @@ function setupWarnHandler(app: App, options: VueErrorExplorerOptions): void {
 }
 
 /**
+ * Router cleanup function storage
+ */
+let routerCleanup: (() => void) | null = null;
+
+/**
+ * Setup router integration if configured
+ */
+function setupRouter(options: VueErrorExplorerOptions): void {
+  if (options.router === false || options.router === undefined) {
+    return;
+  }
+
+  let router: Router;
+  let routerOptions = {};
+
+  if ('instance' in options.router) {
+    // Object with instance and options
+    router = options.router.instance;
+    routerOptions = options.router.options || {};
+  } else {
+    // Direct Router instance
+    router = options.router;
+  }
+
+  routerCleanup = setupRouterIntegration(router, routerOptions);
+}
+
+/**
  * Restore original handlers
  */
 export function restoreHandlers(app: App): void {
@@ -258,6 +288,11 @@ export function restoreHandlers(app: App): void {
   if (originalWarnHandler !== undefined) {
     app.config.warnHandler = originalWarnHandler;
     originalWarnHandler = undefined;
+  }
+
+  if (routerCleanup) {
+    routerCleanup();
+    routerCleanup = null;
   }
 }
 
@@ -275,6 +310,9 @@ export function createErrorExplorerPlugin(options: VueErrorExplorerOptions = {} 
       // Setup handlers
       setupErrorHandler(app, options);
       setupWarnHandler(app, options);
+
+      // Setup router integration if configured
+      setupRouter(options);
 
       // Provide Error Explorer instance globally
       app.provide('errorExplorer', ErrorExplorer);

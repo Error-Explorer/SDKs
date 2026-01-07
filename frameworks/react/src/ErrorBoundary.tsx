@@ -84,6 +84,7 @@ const DefaultFallback: React.FC<FallbackProps> = ({ error, resetErrorBoundary })
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   static defaultProps = {
     capture: true,
+    captureComponentStack: true,
     tags: {},
     context: {},
   };
@@ -107,26 +108,49 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     this.setState({ errorInfo });
 
-    const { capture = true, tags = {}, context = {}, onError } = this.props;
+    const {
+      capture = true,
+      captureComponentStack = true,
+      beforeReactCapture,
+      tags = {},
+      context = {},
+      onError,
+    } = this.props;
 
     // Call user's error handler
     if (onError) {
       onError(error, errorInfo);
     }
 
-    // Capture to Error Explorer
-    if (capture) {
-      ErrorExplorer.captureException(error, {
-        tags: {
-          'react.errorBoundary': 'true',
-          ...tags,
-        },
-        extra: {
-          componentStack: errorInfo.componentStack,
-          ...context,
-        },
-      });
+    // Check if capture is enabled
+    if (!capture) {
+      return;
     }
+
+    // Call beforeReactCapture hook - if it returns false, skip capturing
+    if (beforeReactCapture) {
+      const shouldCapture = beforeReactCapture(error, errorInfo);
+      if (shouldCapture === false) {
+        return;
+      }
+    }
+
+    // Build extra context
+    const extra: Record<string, unknown> = { ...context };
+
+    // Only include component stack if enabled
+    if (captureComponentStack && errorInfo.componentStack) {
+      extra.componentStack = errorInfo.componentStack;
+    }
+
+    // Capture to Error Explorer
+    ErrorExplorer.captureException(error, {
+      tags: {
+        'react.errorBoundary': 'true',
+        ...tags,
+      },
+      extra,
+    });
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps): void {
@@ -203,13 +227,23 @@ export function withErrorBoundary<P extends object>(
   Component: ComponentType<P>,
   options: WithErrorBoundaryOptions = {}
 ): ComponentType<P> {
-  const { fallback, onError, capture = true, tags = {}, context = {} } = options;
+  const {
+    fallback,
+    onError,
+    capture = true,
+    captureComponentStack = true,
+    beforeReactCapture,
+    tags = {},
+    context = {},
+  } = options;
 
   const Wrapped: React.FC<P> = (props) => (
     <ErrorBoundary
       fallback={fallback}
       onError={onError}
       capture={capture}
+      captureComponentStack={captureComponentStack}
+      beforeReactCapture={beforeReactCapture}
       tags={tags}
       context={context}
     >

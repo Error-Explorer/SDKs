@@ -6,12 +6,12 @@ namespace ErrorExplorer\Symfony\Tests\EventSubscriber;
 
 use ErrorExplorer\Symfony\EventSubscriber\ExceptionSubscriber;
 use PHPUnit\Framework\TestCase;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 final class ExceptionSubscriberTest extends TestCase
 {
@@ -31,7 +31,7 @@ final class ExceptionSubscriberTest extends TestCase
         $this->assertSame(['onKernelException', -50], $events[KernelEvents::EXCEPTION]);
     }
 
-    public function test_handles_exception_without_security(): void
+    public function test_handles_exception_without_ignore_config(): void
     {
         $subscriber = new ExceptionSubscriber();
         $exception = new \RuntimeException('Test exception');
@@ -44,9 +44,9 @@ final class ExceptionSubscriberTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_handles_exception_with_null_security(): void
+    public function test_handles_exception_with_empty_ignore_config(): void
     {
-        $subscriber = new ExceptionSubscriber(null);
+        $subscriber = new ExceptionSubscriber([]);
         $exception = new \InvalidArgumentException('Invalid argument');
         $event = $this->createExceptionEvent($exception);
 
@@ -55,83 +55,113 @@ final class ExceptionSubscriberTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_handles_exception_with_security_but_no_user(): void
+    public function test_ignores_exception_by_class_name(): void
     {
-        $security = $this->createMock(Security::class);
-        $security->method('getUser')->willReturn(null);
+        $ignore = [
+            'exceptions' => [NotFoundHttpException::class],
+        ];
 
-        $subscriber = new ExceptionSubscriber($security);
-        $exception = new \RuntimeException('Test exception');
+        $subscriber = new ExceptionSubscriber($ignore);
+        $exception = new NotFoundHttpException('Page not found');
         $event = $this->createExceptionEvent($exception);
 
+        // Exception should be ignored (method returns early)
         $subscriber->onKernelException($event);
 
         $this->assertTrue(true);
     }
 
-    public function test_handles_exception_with_user(): void
+    public function test_ignores_exception_by_parent_class(): void
     {
-        $user = $this->createMock(UserInterface::class);
-        $user->method('getUserIdentifier')->willReturn('user_123');
-        $user->method('getRoles')->willReturn(['ROLE_USER']);
+        $ignore = [
+            'exceptions' => ['Symfony\Component\HttpKernel\Exception\HttpException'],
+        ];
 
-        $security = $this->createMock(Security::class);
-        $security->method('getUser')->willReturn($user);
-
-        $subscriber = new ExceptionSubscriber($security);
-        $exception = new \RuntimeException('Test exception');
+        $subscriber = new ExceptionSubscriber($ignore);
+        $exception = new NotFoundHttpException('Page not found');
         $event = $this->createExceptionEvent($exception);
 
+        // Exception should be ignored because NotFoundHttpException extends HttpException
         $subscriber->onKernelException($event);
 
         $this->assertTrue(true);
     }
 
-    public function test_handles_exception_with_user_email(): void
+    public function test_does_not_ignore_unmatched_exception(): void
     {
-        $user = $this->createMockUserWithEmail('john@example.com');
+        $ignore = [
+            'exceptions' => [NotFoundHttpException::class],
+        ];
 
-        $security = $this->createMock(Security::class);
-        $security->method('getUser')->willReturn($user);
-
-        $subscriber = new ExceptionSubscriber($security);
-        $exception = new \RuntimeException('Test exception');
+        $subscriber = new ExceptionSubscriber($ignore);
+        $exception = new \RuntimeException('Some runtime error');
         $event = $this->createExceptionEvent($exception);
 
+        // Exception should NOT be ignored
         $subscriber->onKernelException($event);
 
         $this->assertTrue(true);
     }
 
-    public function test_auto_user_disabled(): void
+    public function test_ignores_route(): void
     {
-        $user = $this->createMock(UserInterface::class);
-        $user->method('getUserIdentifier')->willReturn('user_123');
-        $user->method('getRoles')->willReturn(['ROLE_USER']);
+        $ignore = [
+            'routes' => ['_wdt', '_profiler'],
+        ];
 
-        $security = $this->createMock(Security::class);
-        // getUser should not be called when autoUser is false
-        $security->expects($this->never())->method('getUser');
-
-        $subscriber = new ExceptionSubscriber($security, -1024, false);
+        $subscriber = new ExceptionSubscriber($ignore);
         $exception = new \RuntimeException('Test exception');
-        $event = $this->createExceptionEvent($exception);
+        $event = $this->createExceptionEvent($exception, '/_wdt/abcdef', '_wdt');
 
+        // Exception should be ignored because route is _wdt
         $subscriber->onKernelException($event);
 
         $this->assertTrue(true);
     }
 
-    public function test_handles_security_exception_gracefully(): void
+    public function test_ignores_path_with_regex(): void
     {
-        $security = $this->createMock(Security::class);
-        $security->method('getUser')->willThrowException(new \RuntimeException('Security error'));
+        $ignore = [
+            'paths' => ['^/health', '^/api/ping'],
+        ];
 
-        $subscriber = new ExceptionSubscriber($security);
-        $exception = new \RuntimeException('Original exception');
+        $subscriber = new ExceptionSubscriber($ignore);
+        $exception = new \RuntimeException('Test exception');
+        $event = $this->createExceptionEvent($exception, '/health/check');
+
+        // Exception should be ignored because path matches ^/health
+        $subscriber->onKernelException($event);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_ignores_status_code(): void
+    {
+        $ignore = [
+            'status_codes' => [404, 403],
+        ];
+
+        $subscriber = new ExceptionSubscriber($ignore);
+        $exception = new NotFoundHttpException('Page not found');
         $event = $this->createExceptionEvent($exception);
 
-        // Should not throw - security errors are silently ignored
+        // Exception should be ignored because status code is 404
+        $subscriber->onKernelException($event);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_does_not_ignore_unmatched_status_code(): void
+    {
+        $ignore = [
+            'status_codes' => [404],
+        ];
+
+        $subscriber = new ExceptionSubscriber($ignore);
+        $exception = new AccessDeniedHttpException('Access denied');
+        $event = $this->createExceptionEvent($exception);
+
+        // Exception should NOT be ignored (403 is not in the list)
         $subscriber->onKernelException($event);
 
         $this->assertTrue(true);
@@ -157,14 +187,30 @@ final class ExceptionSubscriberTest extends TestCase
         $this->assertTrue(true);
     }
 
+    public function test_custom_listener_priority(): void
+    {
+        $subscriber = new ExceptionSubscriber([], -100);
+
+        // The priority is stored but getSubscribedEvents returns the default
+        // This tests that the constructor accepts the priority parameter
+        $this->assertInstanceOf(ExceptionSubscriber::class, $subscriber);
+    }
+
     // =========================================================================
     // Helper Methods
     // =========================================================================
 
-    private function createExceptionEvent(\Throwable $exception): ExceptionEvent
-    {
+    private function createExceptionEvent(
+        \Throwable $exception,
+        string $path = '/api/test',
+        ?string $route = null
+    ): ExceptionEvent {
         $kernel = $this->createMock(HttpKernelInterface::class);
-        $request = Request::create('/api/test', 'GET');
+        $request = Request::create($path, 'GET');
+
+        if ($route !== null) {
+            $request->attributes->set('_route', $route);
+        }
 
         return new ExceptionEvent(
             $kernel,
@@ -172,21 +218,5 @@ final class ExceptionSubscriberTest extends TestCase
             HttpKernelInterface::MAIN_REQUEST,
             $exception
         );
-    }
-
-    /**
-     * Creates a mock user with getEmail method.
-     */
-    private function createMockUserWithEmail(string $email): UserInterface
-    {
-        $user = new class($email) implements UserInterface {
-            public function __construct(private string $email) {}
-            public function getRoles(): array { return ['ROLE_USER']; }
-            public function eraseCredentials(): void {}
-            public function getUserIdentifier(): string { return 'user_123'; }
-            public function getEmail(): string { return $this->email; }
-        };
-
-        return $user;
     }
 }

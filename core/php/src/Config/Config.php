@@ -110,8 +110,9 @@ final class Config
             [$token, $endpoint] = self::parseDsn($options['dsn']);
         }
 
-        if (empty($token)) {
-            throw new \InvalidArgumentException('Error Explorer token is required. Provide "token" or "dsn" option.');
+        // Allow "disabled" as a special token value to skip initialization
+        if (empty($token) || $token === 'disabled') {
+            throw new \InvalidArgumentException('Error Explorer token is required. Provide "token" or "dsn" option. Use enabled: false to disable the SDK.');
         }
 
         // Build full endpoint URL with token

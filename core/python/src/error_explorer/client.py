@@ -635,7 +635,12 @@ class ErrorExplorer:
         if isinstance(breadcrumb, dict):
             breadcrumb = Breadcrumb(**breadcrumb)
 
-        max_breadcrumbs = self._options.max_breadcrumbs
+        # Use breadcrumbs.max_breadcrumbs first, fallback to top-level max_breadcrumbs
+        max_breadcrumbs = (
+            self._options.breadcrumbs.max_breadcrumbs
+            if self._options.breadcrumbs
+            else self._options.max_breadcrumbs
+        )
         if len(self._breadcrumbs) >= max_breadcrumbs:
             self._breadcrumbs = self._breadcrumbs[-(max_breadcrumbs - 1):]
 

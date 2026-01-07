@@ -185,6 +185,15 @@ class ErrorExplorerClient {
       return '';
     }
 
+    // Check if error should be ignored
+    const message = getErrorMessage(error);
+    if (this.shouldIgnoreError(message)) {
+      if (this.config.debug) {
+        console.log('[ErrorExplorer] Ignoring error (manual capture):', message);
+      }
+      return '';
+    }
+
     const eventId = generateUuid();
     const event = this.buildEvent(error, context, 'error');
     this.processAndSend(event);

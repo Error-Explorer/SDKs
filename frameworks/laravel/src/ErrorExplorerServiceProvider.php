@@ -31,7 +31,15 @@ class ErrorExplorerServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/error-explorer.php', 'error-explorer');
 
+        // Only bind the singleton if enabled
+        // This prevents any interaction with the SDK when disabled
         $this->app->singleton('error-explorer', function ($app) {
+            /** @var bool */
+            $enabled = config('error-explorer.enabled', true);
+            if (!$enabled) {
+                return null;
+            }
+
             return ErrorExplorer::getInstance();
         });
     }

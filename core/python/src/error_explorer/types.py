@@ -149,6 +149,11 @@ class BreadcrumbOptions:
 class ErrorExplorerOptions:
     """
     Configuration options for Error Explorer SDK.
+
+    Note: For max_breadcrumbs, use either:
+    - breadcrumbs.max_breadcrumbs (preferred, nested config)
+    - max_breadcrumbs (top-level, legacy)
+    If both are set, breadcrumbs.max_breadcrumbs takes precedence.
     """
     token: str
     project: Optional[str] = None
@@ -159,7 +164,7 @@ class ErrorExplorerOptions:
     debug: bool = False
     enabled: bool = True
     sample_rate: float = 1.0
-    max_breadcrumbs: int = 100
+    max_breadcrumbs: int = 100  # Legacy, use breadcrumbs.max_breadcrumbs instead
     attach_stacktrace: bool = True
     send_default_pii: bool = False
     server_name: Optional[str] = None
@@ -178,8 +183,12 @@ class ErrorExplorerOptions:
 
         # Convert dict to BreadcrumbOptions if needed
         if self.breadcrumbs is None:
-            self.breadcrumbs = BreadcrumbOptions()
+            # Sync max_breadcrumbs from top-level to nested config
+            self.breadcrumbs = BreadcrumbOptions(max_breadcrumbs=self.max_breadcrumbs)
         elif isinstance(self.breadcrumbs, dict):
+            # If nested max_breadcrumbs not specified, use top-level
+            if 'max_breadcrumbs' not in self.breadcrumbs:
+                self.breadcrumbs['max_breadcrumbs'] = self.max_breadcrumbs
             self.breadcrumbs = BreadcrumbOptions(**self.breadcrumbs)
 
         if self.scrub_fields is None:

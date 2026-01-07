@@ -26,8 +26,15 @@ final class ErrorExplorerExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        // Store config as parameters
+        // Store enabled state first
         $container->setParameter('error_explorer.enabled', $config['enabled']);
+
+        // If disabled, don't register any services
+        if (!$config['enabled']) {
+            return;
+        }
+
+        // Store config as parameters
         $container->setParameter('error_explorer.token', $config['token']);
         $container->setParameter('error_explorer.dsn', $config['dsn']);
         $container->setParameter('error_explorer.endpoint', $config['endpoint']);

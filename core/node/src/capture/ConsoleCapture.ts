@@ -82,7 +82,7 @@ class ConsoleCapture {
     const captured: CapturedError = {
       error,
       message,
-      type: 'unhandledRejection', // Use this type for console errors
+      type: 'console',
       severity: 'error',
     };
 

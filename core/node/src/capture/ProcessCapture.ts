@@ -6,7 +6,7 @@
 export interface CapturedError {
   error: Error;
   message: string;
-  type: 'uncaughtException' | 'unhandledRejection';
+  type: 'uncaughtException' | 'unhandledRejection' | 'console';
   severity: 'critical' | 'error';
   promise?: Promise<unknown>;
 }

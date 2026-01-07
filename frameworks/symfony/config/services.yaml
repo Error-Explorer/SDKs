@@ -24,6 +24,9 @@ services:
     error_explorer.exception_subscriber:
         class: ErrorExplorer\Symfony\EventSubscriber\ExceptionSubscriber
         public: true
+        arguments:
+            $ignore: '%error_explorer.ignore%'
+            $listenerPriority: '%error_explorer.listener_priority%'
         tags:
             - { name: kernel.event_subscriber }
 

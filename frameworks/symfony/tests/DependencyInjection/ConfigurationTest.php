@@ -28,7 +28,7 @@ final class ConfigurationTest extends TestCase
         $this->assertNull($config['dsn']);
         $this->assertSame('%kernel.environment%', $config['environment']);
         $this->assertNull($config['release']);
-        $this->assertSame(-1024, $config['listener_priority']);
+        $this->assertSame(-50, $config['listener_priority']);
     }
 
     public function test_token_configuration(): void

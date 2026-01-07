@@ -76,6 +76,18 @@ export interface ErrorBoundaryProps {
   capture?: boolean;
 
   /**
+   * Whether to capture React component stack traces
+   * @default true
+   */
+  captureComponentStack?: boolean;
+
+  /**
+   * Hook called before capturing a React error
+   * Return false to skip capturing
+   */
+  beforeReactCapture?: (error: Error, errorInfo: React.ErrorInfo) => boolean;
+
+  /**
    * Additional tags to add when capturing
    */
   tags?: Record<string, string>;
@@ -219,6 +231,18 @@ export interface WithErrorBoundaryOptions {
    * @default true
    */
   capture?: boolean;
+
+  /**
+   * Whether to capture React component stack traces
+   * @default true
+   */
+  captureComponentStack?: boolean;
+
+  /**
+   * Hook called before capturing a React error
+   * Return false to skip capturing
+   */
+  beforeReactCapture?: (error: Error, errorInfo: React.ErrorInfo) => boolean;
 
   /**
    * Additional tags to add when capturing

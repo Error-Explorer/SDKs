@@ -216,8 +216,8 @@ final class Configuration implements ConfigurationInterface
 
                 // Listener priority (lower = runs later)
                 ->integerNode('listener_priority')
-                    ->defaultValue(-1024)
-                    ->info('Priority for exception listener (lower = runs later)')
+                    ->defaultValue(-50)
+                    ->info('Priority for exception listener (lower = runs later, default -50 runs before Symfony ErrorListener at -128)')
                 ->end()
             ->end()
         ;
